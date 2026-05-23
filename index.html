@@ -1,479 +1,1088 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Shelf — Cloud File Cabinet</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="VaulTxt"/>
+<title>VaulTxt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inconsolata:wght@400;500;600&display=swap" rel="stylesheet"/>
+
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body, #root { height: 100%; }
-  body { background: #0d0d0c; font-family: 'DM Sans', system-ui, sans-serif; color: #e8e2d9; }
-  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #111; } ::-webkit-scrollbar-thumb { background: #2a2a28; border-radius: 3px; }
-  input, textarea, button { font-family: inherit; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-  .spinning { animation: spin 1s linear infinite; display: inline-block; }
-  .fadein { animation: fadein 0.25s ease; }
+/* ── Reset & Base ─────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%;background:#0a0a0f}
+body{
+  height:100%;
+  font-family:'Syne',sans-serif;
+  background:#0a0a0f;
+  color:#e8e4f0;
+  overflow:hidden;
+  position:fixed;
+  width:100%;
+}
+:root{
+  --bg:#0a0a0f;
+  --surface:#111118;
+  --surface2:#17171f;
+  --border:#22222e;
+  --border2:#2a2a38;
+  --accent:#c8a8ff;
+  --accent2:#9d6fff;
+  --accent-glow:rgba(157,111,255,0.18);
+  --text:#e8e4f0;
+  --text2:#9994aa;
+  --text3:#55506a;
+  --danger:#ff6b8a;
+  --success:#6bffb8;
+  --mono:'Inconsolata',monospace;
+  --radius:16px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Scrollbar ─────────────────────────────────── */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ── Layout shell ──────────────────────────────── */
+#app{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  height:100dvh;
+  overflow:hidden;
+}
+
+/* ── Top bar ───────────────────────────────────── */
+#topbar{
+  flex-shrink:0;
+  padding:env(safe-area-inset-top, 12px) 20px 0;
+  padding-top:max(env(safe-area-inset-top, 0px), 12px);
+}
+.topbar-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:52px;
+  border-bottom:1px solid var(--border);
+}
+.logo{
+  display:flex;
+  align-items:baseline;
+  gap:2px;
+}
+.logo-v{
+  font-size:22px;
+  font-weight:800;
+  color:var(--accent);
+  letter-spacing:-1px;
+  line-height:1;
+}
+.logo-rest{
+  font-size:18px;
+  font-weight:700;
+  color:var(--text);
+  letter-spacing:-0.5px;
+}
+.logo-dot{
+  width:6px;height:6px;
+  background:var(--accent2);
+  border-radius:50%;
+  margin-left:3px;
+  align-self:center;
+  box-shadow:0 0 8px var(--accent2);
+}
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.icon-btn{
+  width:36px;height:36px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-size:16px;
+  transition:all .15s;
+  position:relative;
+}
+.icon-btn:active{background:var(--surface2);transform:scale(.93)}
+.storage-badge{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text3);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:3px 7px;
+  letter-spacing:.03em;
+}
+
+/* ── Tab bar ───────────────────────────────────── */
+#tabs{
+  flex-shrink:0;
+  display:flex;
+  gap:4px;
+  padding:10px 20px 0;
+}
+.tab{
+  flex:1;
+  padding:8px 0;
+  border:none;
+  background:transparent;
+  color:var(--text3);
+  font-family:'Syne',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all .2s;
+}
+.tab.active{
+  color:var(--accent);
+  border-bottom-color:var(--accent);
+}
+
+/* ── Content area ──────────────────────────────── */
+#content{
+  flex:1;
+  overflow:hidden;
+  position:relative;
+}
+.panel{
+  position:absolute;
+  inset:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:16px 20px;
+  padding-bottom:calc(20px + var(--safe-bottom));
+  opacity:0;
+  pointer-events:none;
+  transform:translateX(12px);
+  transition:opacity .2s, transform .2s;
+}
+.panel.active{
+  opacity:1;
+  pointer-events:all;
+  transform:translateX(0);
+}
+
+/* ── Vault (list) panel ────────────────────────── */
+.search-wrap{
+  position:relative;
+  margin-bottom:14px;
+}
+.search-wrap svg{
+  position:absolute;left:12px;top:50%;
+  transform:translateY(-50%);
+  color:var(--text3);pointer-events:none;
+}
+#search{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:11px 14px 11px 38px;
+  color:var(--text);
+  font-family:'Syne',sans-serif;
+  font-size:14px;
+  outline:none;
+  transition:border-color .15s;
+}
+#search:focus{border-color:var(--border2)}
+#search::placeholder{color:var(--text3)}
+
+.section-label{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:10px;
+}
+#file-list{display:flex;flex-direction:column;gap:8px}
+
+.file-item{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  cursor:pointer;
+  transition:all .15s;
+  position:relative;
+  overflow:hidden;
+  -webkit-user-select:none;
+}
+.file-item::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:var(--accent-glow);
+  opacity:0;
+  transition:opacity .15s;
+}
+.file-item:active::before{opacity:1}
+.file-item:active{transform:scale(.98)}
+
+.file-icon{
+  width:40px;height:40px;
+  border-radius:10px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  flex-shrink:0;
+}
+.file-info{flex:1;min-width:0}
+.file-name{
+  font-size:14px;font-weight:600;
+  color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  margin-bottom:3px;
+}
+.file-meta{
+  font-family:var(--mono);
+  font-size:11px;color:var(--text3);
+}
+.file-actions{
+  display:flex;gap:6px;flex-shrink:0;
+}
+.file-act-btn{
+  width:32px;height:32px;
+  border-radius:9px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text3);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-size:14px;
+  transition:all .15s;
+}
+.file-act-btn:active{transform:scale(.88)}
+.file-act-btn.del:active{background:#2a0f15;border-color:#5a1a25;color:var(--danger)}
+
+.empty-state{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:64px 24px;
+  text-align:center;
+  gap:12px;
+}
+.empty-icon{
+  font-size:48px;
+  opacity:.2;
+}
+.empty-title{font-size:16px;font-weight:700;color:var(--text2)}
+.empty-sub{font-size:13px;color:var(--text3);line-height:1.6}
+
+/* ── Write panel ───────────────────────────────── */
+.write-wrap{
+  display:flex;flex-direction:column;
+  gap:12px;
+  height:100%;
+  padding-bottom:0;
+}
+.title-input{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:13px 16px;
+  color:var(--text);
+  font-family:'Syne',sans-serif;
+  font-size:16px;
+  font-weight:600;
+  outline:none;
+  width:100%;
+  transition:border-color .15s;
+}
+.title-input:focus{border-color:var(--accent2)}
+.title-input::placeholder{color:var(--text3)}
+
+.ext-row{
+  display:flex;gap:8px;overflow-x:auto;
+  padding-bottom:4px;
+  scrollbar-width:none;
+}
+.ext-row::-webkit-scrollbar{display:none}
+.ext-chip{
+  flex-shrink:0;
+  padding:6px 14px;
+  border-radius:20px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text3);
+  font-family:var(--mono);
+  font-size:12px;
+  cursor:pointer;
+  transition:all .15s;
+  white-space:nowrap;
+}
+.ext-chip.active{
+  background:var(--accent-glow);
+  border-color:var(--accent2);
+  color:var(--accent);
+}
+.ext-chip:active{transform:scale(.93)}
+
+#editor-wrap{
+  flex:1;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+.editor-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+}
+.editor-info{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text3);
+}
+.editor-actions{display:flex;gap:6px}
+.mini-btn{
+  padding:5px 11px;
+  border-radius:7px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text2);
+  font-family:'Syne',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .15s;
+}
+.mini-btn:active{transform:scale(.93);background:var(--surface2)}
+.mini-btn.primary{
+  background:var(--accent-glow);
+  border-color:var(--accent2);
+  color:var(--accent);
+}
+
+#editor{
+  flex:1;
+  background:transparent;
+  border:none;
+  padding:16px;
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:14px;
+  line-height:1.8;
+  resize:none;
+  outline:none;
+  -webkit-overflow-scrolling:touch;
+  overflow-y:auto;
+  width:100%;
+}
+#editor::placeholder{color:var(--text3)}
+
+/* Save button fixed at bottom */
+.save-bar{
+  flex-shrink:0;
+  padding-top:10px;
+}
+.save-btn{
+  width:100%;
+  padding:15px;
+  background:linear-gradient(135deg, var(--accent2) 0%, #7b4fd4 100%);
+  border:none;
+  border-radius:14px;
+  color:#fff;
+  font-family:'Syne',sans-serif;
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:.02em;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;
+  box-shadow:0 4px 20px rgba(157,111,255,.3);
+}
+.save-btn:active{transform:scale(.97);box-shadow:0 2px 10px rgba(157,111,255,.2)}
+.save-btn:disabled{opacity:.4;pointer-events:none}
+
+/* ── Read/edit panel ───────────────────────────── */
+.read-topbar{
+  display:flex;align-items:center;
+  gap:10px;
+  margin-bottom:14px;
+  flex-shrink:0;
+}
+.back-btn{
+  width:36px;height:36px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-size:18px;
+  flex-shrink:0;
+  transition:all .15s;
+}
+.back-btn:active{background:var(--surface2);transform:scale(.93)}
+.read-title{
+  flex:1;min-width:0;
+  font-size:16px;font-weight:700;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.read-content{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px;
+  font-family:var(--mono);
+  font-size:13px;
+  line-height:1.9;
+  color:var(--text);
+  white-space:pre-wrap;
+  word-break:break-word;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  flex:1;
+  min-height:0;
+}
+.read-actions{
+  display:flex;gap:10px;
+  margin-top:12px;
+  flex-shrink:0;
+}
+.read-btn{
+  flex:1;
+  padding:13px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--text2);
+  font-family:'Syne',sans-serif;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:all .15s;
+}
+.read-btn:active{transform:scale(.96)}
+.read-btn.danger{border-color:#3a1020;color:var(--danger);background:#1a080e}
+
+/* Panel read mode */
+#read-panel{
+  display:flex;
+  flex-direction:column;
+}
+
+/* ── Toast ─────────────────────────────────────── */
+#toast{
+  position:fixed;
+  bottom:calc(24px + var(--safe-bottom));
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:12px;
+  padding:11px 20px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text);
+  white-space:nowrap;
+  z-index:999;
+  opacity:0;
+  transition:all .25s;
+  pointer-events:none;
+  display:flex;align-items:center;gap:8px;
+  box-shadow:0 8px 30px rgba(0,0,0,.5);
+}
+#toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+#toast.success{border-color:rgba(107,255,184,.3);color:var(--success)}
+#toast.error{border-color:rgba(255,107,138,.3);color:var(--danger)}
+
+/* ── Loading overlay ───────────────────────────── */
+#loading{
+  position:fixed;inset:0;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:16px;
+  z-index:100;
+  transition:opacity .3s;
+}
+#loading.hide{opacity:0;pointer-events:none}
+.loader-logo{
+  font-family:'Syne',sans-serif;
+  font-size:28px;font-weight:800;
+  letter-spacing:-1px;
+}
+.loader-logo span{color:var(--accent)}
+.loader-ring{
+  width:28px;height:28px;
+  border:2px solid var(--border2);
+  border-top-color:var(--accent2);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Confirm sheet ─────────────────────────────── */
+#confirm-sheet{
+  position:fixed;inset:0;
+  background:rgba(10,10,15,.7);
+  backdrop-filter:blur(6px);
+  z-index:200;
+  display:flex;align-items:flex-end;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s;
+}
+#confirm-sheet.show{opacity:1;pointer-events:all}
+.sheet-card{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:20px 20px 0 0;
+  padding:20px 20px calc(20px + var(--safe-bottom));
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.22,.61,.36,1);
+}
+#confirm-sheet.show .sheet-card{transform:translateY(0)}
+.sheet-title{
+  font-size:16px;font-weight:700;
+  margin-bottom:6px;
+}
+.sheet-sub{
+  font-size:13px;color:var(--text3);
+  margin-bottom:20px;line-height:1.5;
+  word-break:break-all;
+}
+.sheet-btns{display:flex;flex-direction:column;gap:10px}
+.sheet-btn{
+  padding:14px;
+  border-radius:13px;
+  border:none;
+  font-family:'Syne',sans-serif;
+  font-size:15px;font-weight:700;
+  cursor:pointer;
+  transition:all .15s;
+}
+.sheet-btn:active{transform:scale(.97)}
+.sheet-btn.danger{background:var(--danger);color:#0a0a0f}
+.sheet-btn.cancel{background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+
+/* ── Animations ────────────────────────────────── */
+@keyframes fadeSlideUp{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.file-item{animation:fadeSlideUp .2s ease both}
 </style>
 </head>
 <body>
-<div id="root"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
-<script type="text/babel">
-const { useState, useEffect, useCallback, useRef } = React;
+<div id="loading">
+  <div class="loader-logo"><span>V</span>aulTxt</div>
+  <div class="loader-ring"></div>
+</div>
 
-const BASE    = "https://storegit.pages.dev";
-const API_KEY = "sgk_eaVKQ0K6M5e64ku2hvmuvJuwkpXithGP-Cecl2-gP-o";
-const HDR     = { "X-API-Key": API_KEY };
-
-const toBase64 = f => new Promise((res, rej) => {
-  const r = new FileReader();
-  r.onload = () => res(r.result.split(",")[1]);
-  r.onerror = rej;
-  r.readAsDataURL(f);
-});
-
-const fmtSize = b => {
-  if (!b) return "—";
-  if (b < 1024) return b + " B";
-  if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
-  return (b / 1048576).toFixed(1) + " MB";
-};
-
-const fmtDate = d => {
-  if (!d) return "";
-  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-};
-
-const EXT_META = {
-  pdf:  { icon: "ti-file-type-pdf",     col: "#e05252" },
-  txt:  { icon: "ti-file-text",         col: "#a3c4bc" },
-  md:   { icon: "ti-markdown",          col: "#7eb8d4" },
-  jpg:  { icon: "ti-photo",             col: "#d4a853" },
-  jpeg: { icon: "ti-photo",             col: "#d4a853" },
-  png:  { icon: "ti-photo",             col: "#d4a853" },
-  gif:  { icon: "ti-photo",             col: "#d4a853" },
-  svg:  { icon: "ti-vector",            col: "#c4a7e7" },
-  webp: { icon: "ti-photo",             col: "#d4a853" },
-  mp3:  { icon: "ti-music",             col: "#88c57f" },
-  wav:  { icon: "ti-music",             col: "#88c57f" },
-  mp4:  { icon: "ti-movie",             col: "#f4a261" },
-  mov:  { icon: "ti-movie",             col: "#f4a261" },
-  zip:  { icon: "ti-file-zip",          col: "#b4a7d6" },
-  rar:  { icon: "ti-file-zip",          col: "#b4a7d6" },
-  js:   { icon: "ti-brand-javascript",  col: "#f7df1e" },
-  ts:   { icon: "ti-brand-typescript",  col: "#3178c6" },
-  py:   { icon: "ti-brand-python",      col: "#4584b6" },
-  html: { icon: "ti-brand-html5",       col: "#e34c26" },
-  css:  { icon: "ti-brand-css3",        col: "#264de4" },
-  json: { icon: "ti-braces",            col: "#ffd700" },
-  csv:  { icon: "ti-table",             col: "#5aaa72" },
-};
-const getMeta = name => {
-  const ext = (name || "").split(".").pop().toLowerCase();
-  return EXT_META[ext] || { icon: "ti-file", col: "#888" };
-};
-
-/* ── tiny shared styles ── */
-const card = {
-  background: "#111110", border: "1px solid #1e1e1c",
-  borderRadius: 12, padding: "1.1rem",
-};
-const label = {
-  fontSize: 12, color: "#555", display: "block",
-  marginBottom: 6, letterSpacing: "0.05em", textTransform: "uppercase",
-};
-const inp = {
-  width: "100%", padding: "10px 14px",
-  background: "#111110", border: "1px solid #222",
-  borderRadius: 8, color: "#e0d8cc", fontSize: 13, outline: "none",
-};
-const goldBtn = (disabled) => ({
-  padding: "10px 28px", background: disabled ? "#2a2a28" : "#d4a853",
-  border: "none", borderRadius: 8,
-  color: disabled ? "#555" : "#0d0d0c",
-  fontWeight: 600, fontSize: 14,
-  cursor: disabled ? "not-allowed" : "pointer",
-  display: "flex", alignItems: "center", gap: 8, transition: "all .15s",
-});
-const ghostBtn = {
-  padding: "10px 20px", background: "none",
-  border: "1px solid #2a2a28", borderRadius: 8,
-  color: "#666", fontSize: 14, cursor: "pointer",
-};
-const iconBtn = {
-  display: "flex", alignItems: "center", gap: 6,
-  padding: "7px 14px", background: "none",
-  border: "1px solid #2a2a28", borderRadius: 7,
-  color: "#666", fontSize: 13, cursor: "pointer",
-};
-
-/* ── Toast ── */
-function Toast({ s }) {
-  if (!s) return null;
-  const ic = { success: "ti-circle-check", error: "ti-alert-circle", info: "ti-info-circle" };
-  const bg = { success: "#0f2a12", error: "#2a0f0f", info: "#1a1a0f" };
-  const br = { success: "#1e4d22", error: "#4d1e1e", info: "#4d451e" };
-  const cl = { success: "#6dbf76", error: "#bf6d6d", info: "#bfad6d" };
-  return (
-    <div style={{
-      position: "fixed", bottom: 24, right: 24,
-      padding: "11px 18px", borderRadius: 10, fontSize: 13, zIndex: 999,
-      display: "flex", alignItems: "center", gap: 8,
-      background: bg[s.type], border: `1px solid ${br[s.type]}`, color: cl[s.type],
-      boxShadow: "0 4px 24px rgba(0,0,0,.5)", animation: "fadein .25s ease",
-    }}>
-      <i className={`ti ${ic[s.type]}`} style={{ fontSize: 15 }} />
-      {s.text}
-    </div>
-  );
-}
-
-/* ── File card ── */
-function FileCard({ file, onDownload, onDelete }) {
-  const m = getMeta(file.name);
-  const [hov, setHov] = useState(false);
-  return (
-    <div
-      style={{ ...card, borderColor: hov ? "#2e2e2c" : "#1e1e1c", transition: "border-color .2s", display: "flex", flexDirection: "column" }}
-      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-    >
-      <i className={`ti ${m.icon}`} style={{ fontSize: 32, color: m.col, marginBottom: 10 }} />
-      <p style={{ fontSize: 13, fontWeight: 500, color: "#e0d8cc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
-        {file.name}
-      </p>
-      <p style={{ fontSize: 11, color: "#444", marginBottom: 12 }}>
-        {fmtSize(file.size)}{file.last_modified ? " · " + fmtDate(file.last_modified) : ""}
-      </p>
-      <div style={{ display: "flex", gap: 6, marginTop: "auto" }}>
-        <button
-          onClick={() => onDownload(file)}
-          style={{ flex: 1, padding: "6px 0", background: "none", border: "1px solid #2a2a28", color: "#666", borderRadius: 6, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
-        >
-          <i className="ti ti-download" style={{ fontSize: 13 }} /> Download
-        </button>
-        <button
-          onClick={() => onDelete(file)}
-          style={{ padding: "6px 10px", background: "none", border: "1px solid #3a1a1a", color: "#844", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
-        >
-          <i className="ti ti-trash" style={{ fontSize: 13 }} />
+<div id="app">
+  <!-- Top bar -->
+  <div id="topbar">
+    <div class="topbar-inner">
+      <div class="logo">
+        <span class="logo-v">V</span><span class="logo-rest">aulTxt</span>
+        <div class="logo-dot"></div>
+      </div>
+      <div class="topbar-right">
+        <span class="storage-badge" id="storage-badge">— KB</span>
+        <button class="icon-btn" id="refresh-btn" title="Refresh">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
         </button>
       </div>
     </div>
-  );
-}
+  </div>
 
-/* ── Upload row ── */
-function UploadRow({ item }) {
-  const m = getMeta(item.name);
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px", ...card, borderRadius: 10 }}>
-      <i className={`ti ${m.icon}`} style={{ fontSize: 20, color: m.col, flexShrink: 0 }} />
-      <span style={{ flex: 1, fontSize: 13, color: "#e0d8cc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</span>
-      {item.state === "uploading" && <span style={{ fontSize: 12, color: "#888", display: "flex", alignItems: "center", gap: 5 }}><i className="ti ti-loader spinning" style={{ fontSize: 13 }} /> Uploading</span>}
-      {item.state === "done"      && <span style={{ fontSize: 12, color: "#6dbf76", display: "flex", alignItems: "center", gap: 5 }}><i className="ti ti-circle-check" style={{ fontSize: 13 }} /> Done</span>}
-      {item.state === "error"     && <span style={{ fontSize: 12, color: "#bf6d6d", display: "flex", alignItems: "center", gap: 5 }}><i className="ti ti-alert-circle" style={{ fontSize: 13 }} /> {item.err}</span>}
+  <!-- Tabs -->
+  <div id="tabs">
+    <button class="tab active" data-tab="vault">Vault</button>
+    <button class="tab" data-tab="write">Write</button>
+  </div>
+
+  <!-- Content -->
+  <div id="content">
+
+    <!-- VAULT PANEL -->
+    <div class="panel active" id="vault-panel">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="search" id="search" placeholder="Search notes…" autocomplete="off" spellcheck="false"/>
+      </div>
+      <div class="section-label" id="list-label">All notes</div>
+      <div id="file-list"></div>
     </div>
-  );
-}
 
-/* ── Main app ── */
-function App() {
-  const [files,    setFiles]    = useState([]);
-  const [loading,  setLoading]  = useState(false);
-  const [view,     setView]     = useState("files");
-  const [search,   setSearch]   = useState("");
-  const [note,     setNote]     = useState("");
-  const [noteName, setNoteName] = useState("");
-  const [drag,     setDrag]     = useState(false);
-  const [uploads,  setUploads]  = useState([]);
-  const [toast,    setToast]    = useState(null);
-  const [saving,   setSaving]   = useState(false);
-  const fileRef = useRef();
-  const timerRef = useRef();
+    <!-- WRITE PANEL -->
+    <div class="panel" id="write-panel">
+      <div class="write-wrap">
+        <input type="text" id="note-title" class="title-input" placeholder="Untitled note…" autocomplete="off" spellcheck="false"/>
 
-  const notify = useCallback((type, text) => {
-    setToast({ type, text });
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setToast(null), 3500);
-  }, []);
-
-  const loadFiles = useCallback(async () => {
-    setLoading(true);
-    try {
-      const r = await fetch(`${BASE}/api/files`, { headers: HDR });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const d = await r.json();
-      setFiles(Array.isArray(d) ? d : d.files || []);
-    } catch (e) { notify("error", "Could not load files — " + e.message); }
-    finally { setLoading(false); }
-  }, [notify]);
-
-  useEffect(() => { loadFiles(); }, [loadFiles]);
-
-  const handleDelete = async f => {
-    if (!window.confirm(`Delete "${f.name}"?`)) return;
-    try {
-      const r = await fetch(`${BASE}/api/delete`, {
-        method: "DELETE",
-        headers: { ...HDR, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: f.name, sha: f.sha }),
-      });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      notify("success", `"${f.name}" deleted`);
-      setFiles(p => p.filter(x => x.name !== f.name));
-    } catch (e) { notify("error", "Delete failed — " + e.message); }
-  };
-
-  const handleDownload = async f => {
-    try {
-      notify("info", `Downloading "${f.name}"…`);
-      const blob = await fetch(`${BASE}/api/download?name=${encodeURIComponent(f.name)}`, { headers: HDR })
-        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.blob(); });
-      const url = URL.createObjectURL(blob);
-      Object.assign(document.createElement("a"), { href: url, download: f.name }).click();
-      URL.revokeObjectURL(url);
-      notify("success", `Downloaded "${f.name}"`);
-    } catch (e) { notify("error", "Download failed — " + e.message); }
-  };
-
-  const uploadFile = async f => {
-    if (f.size > 5 * 1024 * 1024) { notify("error", `"${f.name}" exceeds 5 MB`); return; }
-    const id = Math.random().toString(36).slice(2);
-    setUploads(u => [...u, { id, name: f.name, state: "uploading" }]);
-    try {
-      const content = await toBase64(f);
-      const r = await fetch(`${BASE}/api/upload`, {
-        method: "POST",
-        headers: { ...HDR, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: f.name, content }),
-      });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      setUploads(u => u.map(x => x.id === id ? { ...x, state: "done" } : x));
-      setTimeout(() => setUploads(u => u.filter(x => x.id !== id)), 2500);
-      notify("success", `"${f.name}" uploaded`);
-      loadFiles();
-    } catch (e) {
-      setUploads(u => u.map(x => x.id === id ? { ...x, state: "error", err: e.message } : x));
-      notify("error", `Upload failed — ${e.message}`);
-    }
-  };
-
-  const saveNote = async () => {
-    if (!note.trim()) { notify("error", "Note is empty"); return; }
-    const raw  = noteName.trim();
-    const name = raw ? (raw.includes(".") ? raw : raw + ".txt") : `note-${Date.now()}.txt`;
-    setSaving(true);
-    try {
-      const bytes = new TextEncoder().encode(note);
-      let bin = ""; bytes.forEach(b => bin += String.fromCharCode(b));
-      const r = await fetch(`${BASE}/api/upload`, {
-        method: "POST",
-        headers: { ...HDR, "Content-Type": "application/json" },
-        body: JSON.stringify({ name, content: btoa(bin) }),
-      });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      notify("success", `"${name}" saved to cloud`);
-      setNote(""); setNoteName(""); loadFiles();
-    } catch (e) { notify("error", "Save failed — " + e.message); }
-    finally { setSaving(false); }
-  };
-
-  const filtered = files.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
-  const totalSize = files.reduce((a, f) => a + (f.size || 0), 0);
-
-  const navItems = [
-    { id: "files",  icon: "ti-files",       label: "All Files" },
-    { id: "notes",  icon: "ti-notes",        label: "Quick Note" },
-    { id: "upload", icon: "ti-cloud-upload", label: "Upload" },
-  ];
-
-  return (
-    <div style={{ minHeight: "100vh", background: "#0d0d0c", display: "flex" }}>
-
-      {/* ── Sidebar ── */}
-      <aside style={{
-        width: 230, background: "#111110", borderRight: "1px solid #1e1e1c",
-        padding: "1.75rem 1rem", display: "flex", flexDirection: "column", gap: 4, flexShrink: 0,
-      }}>
-        <div style={{ padding: "0 .75rem 1.75rem", borderBottom: "1px solid #1e1e1c", marginBottom: ".75rem" }}>
-          <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 26, fontWeight: 700, color: "#f0e8d8", letterSpacing: "-.5px" }}>Shelf</p>
-          <p style={{ fontSize: 11, color: "#555", marginTop: 4, letterSpacing: ".08em", textTransform: "uppercase" }}>
-            {files.length} file{files.length !== 1 ? "s" : ""} stored
-          </p>
+        <div class="ext-row" id="ext-row">
+          <button class="ext-chip active" data-ext=".txt">.txt</button>
+          <button class="ext-chip" data-ext=".md">.md</button>
+          <button class="ext-chip" data-ext=".json">.json</button>
+          <button class="ext-chip" data-ext=".csv">.csv</button>
+          <button class="ext-chip" data-ext=".log">.log</button>
+          <button class="ext-chip" data-ext=".yaml">.yaml</button>
+          <button class="ext-chip" data-ext=".sh">.sh</button>
+          <button class="ext-chip" data-ext=".js">.js</button>
+          <button class="ext-chip" data-ext=".py">.py</button>
         </div>
 
-        {navItems.map(({ id, icon, label }) => (
-          <button key={id} onClick={() => setView(id)} style={{
-            display: "flex", alignItems: "center", gap: 10,
-            padding: "9px 12px", borderRadius: 8, border: "none",
-            background: view === id ? "#1c1c1a" : "transparent",
-            color: view === id ? "#d4a853" : "#666",
-            fontSize: 14, cursor: "pointer", textAlign: "left", width: "100%", transition: "all .15s",
-          }}>
-            <i className={`ti ${icon}`} style={{ fontSize: 17 }} />
-            {label}
+        <div id="editor-wrap">
+          <div class="editor-toolbar">
+            <span class="editor-info" id="editor-info">0 chars · 1 line</span>
+            <div class="editor-actions">
+              <button class="mini-btn" id="clear-btn">Clear</button>
+            </div>
+          </div>
+          <textarea id="editor" placeholder="Start writing…" spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+        </div>
+
+        <div class="save-bar">
+          <button class="save-btn" id="save-btn" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Save to Vault
           </button>
-        ))}
-
-        <div style={{ marginTop: "auto", paddingTop: "1rem", borderTop: "1px solid #1e1e1c" }}>
-          <p style={{ fontSize: 11, color: "#333", padding: "0 12px" }}>storegit.pages.dev</p>
         </div>
-      </aside>
-
-      {/* ── Main ── */}
-      <main style={{ flex: 1, padding: "2rem 2.5rem", overflowY: "auto", minWidth: 0 }}>
-
-        {/* FILES */}
-        {view === "files" && (
-          <section className="fadein">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.75rem", flexWrap: "wrap", gap: 12 }}>
-              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, fontWeight: 600, color: "#f0e8d8" }}>All Files</h2>
-              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                <div style={{ position: "relative" }}>
-                  <i className="ti ti-search" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#444" }} />
-                  <input
-                    value={search} onChange={e => setSearch(e.target.value)}
-                    placeholder="Search files…"
-                    style={{ ...inp, paddingLeft: 32, width: 200 }}
-                  />
-                </div>
-                <button style={iconBtn} onClick={loadFiles}>
-                  <i className={`ti ti-refresh ${loading ? "spinning" : ""}`} style={{ fontSize: 14 }} /> Refresh
-                </button>
-              </div>
-            </div>
-
-            {loading ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "5rem", color: "#444", border: "1px dashed #222", borderRadius: 14 }}>
-                <i className="ti ti-loader spinning" style={{ fontSize: 20 }} /> Loading…
-              </div>
-            ) : filtered.length === 0 ? (
-              <div style={{ border: "1px dashed #222", borderRadius: 14, padding: "5rem 2rem", textAlign: "center", color: "#444" }}>
-                <i className="ti ti-folders" style={{ fontSize: 44, display: "block", marginBottom: 16 }} />
-                <p style={{ fontSize: 15 }}>{search ? `No files matching "${search}"` : "No files yet — upload something!"}</p>
-                {!search && (
-                  <button onClick={() => setView("upload")} style={{ ...goldBtn(false), margin: "16px auto 0", justifyContent: "center" }}>
-                    Upload Now
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: 12 }}>
-                {filtered.map(f => (
-                  <FileCard key={f.name} file={f} onDownload={handleDownload} onDelete={handleDelete} />
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* NOTES */}
-        {view === "notes" && (
-          <section className="fadein" style={{ maxWidth: 660 }}>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, fontWeight: 600, color: "#f0e8d8", marginBottom: "1.75rem" }}>Quick Note</h2>
-
-            <div style={{ marginBottom: 12 }}>
-              <label style={label}>File name</label>
-              <div style={{ display: "flex", alignItems: "center", background: "#111110", border: "1px solid #222", borderRadius: 8, overflow: "hidden" }}>
-                <i className="ti ti-file-text" style={{ fontSize: 15, color: "#555", padding: "0 10px" }} />
-                <input
-                  placeholder="my-note  (auto-names if blank)"
-                  value={noteName} onChange={e => setNoteName(e.target.value)}
-                  style={{ flex: 1, padding: "10px 12px 10px 0", background: "none", border: "none", color: "#e0d8cc", fontSize: 13, outline: "none" }}
-                />
-                <span style={{ padding: "0 12px", fontSize: 12, color: "#444" }}>{noteName && !noteName.includes(".") ? ".txt" : ""}</span>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <label style={label}>Content</label>
-              <textarea
-                placeholder="Start writing…"
-                value={note} onChange={e => setNote(e.target.value)}
-                rows={16}
-                style={{ ...inp, padding: 16, fontFamily: "'DM Mono', 'Courier New', monospace", lineHeight: 1.75, resize: "vertical" }}
-              />
-              <p style={{ textAlign: "right", fontSize: 11, color: "#444", marginTop: 6 }}>
-                {note.length} chars · {note.split(/\n/).length} lines
-              </p>
-            </div>
-
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={saveNote} disabled={saving || !note.trim()} style={goldBtn(saving || !note.trim())}>
-                <i className={`ti ${saving ? "ti-loader spinning" : "ti-cloud-upload"}`} style={{ fontSize: 15 }} />
-                {saving ? "Saving…" : "Save to Cloud"}
-              </button>
-              <button onClick={() => { setNote(""); setNoteName(""); }} style={ghostBtn}>Clear</button>
-            </div>
-          </section>
-        )}
-
-        {/* UPLOAD */}
-        {view === "upload" && (
-          <section className="fadein">
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, fontWeight: 600, color: "#f0e8d8", marginBottom: "1.75rem" }}>Upload Files</h2>
-
-            <div
-              role="button" tabIndex={0}
-              onDragOver={e => { e.preventDefault(); setDrag(true); }}
-              onDragLeave={() => setDrag(false)}
-              onDrop={e => { e.preventDefault(); setDrag(false); Array.from(e.dataTransfer.files).forEach(uploadFile); }}
-              onClick={() => fileRef.current?.click()}
-              onKeyDown={e => e.key === "Enter" && fileRef.current?.click()}
-              style={{
-                border: `2px dashed ${drag ? "#d4a853" : "#2a2a28"}`,
-                borderRadius: 16, padding: "5rem 2rem", textAlign: "center", cursor: "pointer",
-                background: drag ? "rgba(212,168,83,.04)" : "transparent", transition: "all .2s",
-              }}
-            >
-              <i className="ti ti-cloud-upload" style={{ fontSize: 52, color: drag ? "#d4a853" : "#2e2e2c", display: "block", marginBottom: 20 }} />
-              <p style={{ color: "#c0b8ac", fontSize: 16, fontWeight: 500, marginBottom: 8 }}>
-                {drag ? "Release to upload" : "Drop files here or click to browse"}
-              </p>
-              <p style={{ color: "#444", fontSize: 13 }}>Any file type · max 5 MB per file</p>
-              <input ref={fileRef} type="file" multiple style={{ display: "none" }}
-                onChange={e => { Array.from(e.target.files).forEach(uploadFile); e.target.value = ""; }} />
-            </div>
-
-            {uploads.length > 0 && (
-              <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", gap: 8 }}>
-                <p style={{ ...label, marginBottom: 4 }}>Transfers</p>
-                {uploads.map(item => <UploadRow key={item.id} item={item} />)}
-              </div>
-            )}
-
-            <div style={{ marginTop: "2rem", padding: "1.25rem 1.5rem", ...card, borderRadius: 12 }}>
-              <p style={{ ...label, marginBottom: 10 }}>Storage info</p>
-              <div style={{ display: "flex", gap: "2.5rem", flexWrap: "wrap" }}>
-                {[
-                  { l: "Total files", v: files.length },
-                  { l: "Total size",  v: fmtSize(totalSize) },
-                  { l: "File limit",  v: "5 MB" },
-                ].map(({ l, v }) => (
-                  <div key={l}>
-                    <p style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>{l}</p>
-                    <p style={{ fontSize: 22, fontWeight: 600, color: "#d4a853" }}>{v}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
-
-      <Toast s={toast} />
+      </div>
     </div>
-  );
+
+    <!-- READ PANEL -->
+    <div class="panel" id="read-panel">
+      <div class="read-topbar">
+        <button class="back-btn" id="read-back">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <div class="read-title" id="read-title">—</div>
+      </div>
+      <div class="read-content" id="read-content"></div>
+      <div class="read-actions">
+        <button class="read-btn" id="read-dl">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download
+        </button>
+        <button class="read-btn" id="read-copy">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy
+        </button>
+        <button class="read-btn danger" id="read-del">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+          </svg>
+          Delete
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Confirm sheet -->
+<div id="confirm-sheet">
+  <div class="sheet-card">
+    <div class="sheet-title" id="sheet-title">Delete note?</div>
+    <div class="sheet-sub" id="sheet-sub"></div>
+    <div class="sheet-btns">
+      <button class="sheet-btn danger" id="sheet-confirm">Delete</button>
+      <button class="sheet-btn cancel" id="sheet-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="storegit.js"></script>
+<script>
+'use strict';
+
+const API_KEY = "sgk_eaVKQ0K6M5e64ku2hvmuvJuwkpXithGP-Cecl2-gP-o";
+const sg      = new StoreGit(API_KEY);
+
+// ── State ────────────────────────────────────────
+let allFiles    = [];
+let currentFile = null;
+let activeExt   = ".txt";
+let prevTab     = "vault";
+let toastTimer;
+let confirmCb   = null;
+
+// ── Elements ─────────────────────────────────────
+const $ = id => document.getElementById(id);
+const loading       = $("loading");
+const tabs          = document.querySelectorAll(".tab");
+const vaultPanel    = $("vault-panel");
+const writePanel    = $("write-panel");
+const readPanel     = $("read-panel");
+const fileList      = $("file-list");
+const listLabel     = $("list-label");
+const searchInput   = $("search");
+const storageBadge  = $("storage-badge");
+const noteTitle     = $("note-title");
+const editor        = $("editor");
+const editorInfo    = $("editor-info");
+const saveBtn       = $("save-btn");
+const clearBtn      = $("clear-btn");
+const readTitle     = $("read-title");
+const readContent   = $("read-content");
+const readBack      = $("read-back");
+const readDl        = $("read-dl");
+const readCopy      = $("read-copy");
+const readDel       = $("read-del");
+const toastEl       = $("toast");
+const confirmSheet  = $("confirm-sheet");
+const sheetTitle    = $("sheet-title");
+const sheetSub      = $("sheet-sub");
+const sheetConfirm  = $("sheet-confirm");
+const sheetCancel   = $("sheet-cancel");
+const refreshBtn    = $("refresh-btn");
+
+// ── Toast ────────────────────────────────────────
+function toast(msg, type = "info") {
+  const icons = { success: "✓", error: "✕", info: "·" };
+  toastEl.textContent = "";
+  toastEl.className   = "show " + type;
+  toastEl.textContent = (icons[type] || "·") + " " + msg;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2800);
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+// ── Confirm sheet ────────────────────────────────
+function confirm(title, sub, cb) {
+  sheetTitle.textContent = title;
+  sheetSub.textContent   = sub;
+  confirmCb = cb;
+  confirmSheet.classList.add("show");
+}
+sheetConfirm.onclick = () => {
+  confirmSheet.classList.remove("show");
+  if (confirmCb) { confirmCb(); confirmCb = null; }
+};
+sheetCancel.onclick = () => {
+  confirmSheet.classList.remove("show");
+  confirmCb = null;
+};
+confirmSheet.addEventListener("click", e => {
+  if (e.target === confirmSheet) {
+    confirmSheet.classList.remove("show");
+    confirmCb = null;
+  }
+});
+
+// ── Helpers ──────────────────────────────────────
+function fmtSize(b) {
+  if (!b) return "—";
+  if (b < 1024) return b + "B";
+  if (b < 1048576) return (b / 1024).toFixed(1) + "KB";
+  return (b / 1048576).toFixed(1) + "MB";
+}
+
+function fmtTotalSize(bytes) {
+  if (!bytes) return "0 B";
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / 1048576).toFixed(1) + " MB";
+}
+
+function fileEmoji(name) {
+  const ext = (name || "").split(".").pop().toLowerCase();
+  const m = {
+    txt:"📄", md:"📝", json:"🗂", csv:"📊", log:"📋",
+    yaml:"⚙️", yml:"⚙️", sh:"💻", bash:"💻",
+    js:"🟨", ts:"🔷", py:"🐍", html:"🌐", css:"🎨",
+    xml:"📦", sql:"🗄", rb:"💎",
+  };
+  return m[ext] || "📄";
+}
+
+function fmtDate(d) {
+  if (!d) return "";
+  const dt = new Date(d);
+  const now = new Date();
+  const diff = now - dt;
+  if (diff < 60000)  return "just now";
+  if (diff < 3600000) return Math.floor(diff / 60000) + "m ago";
+  if (diff < 86400000) return Math.floor(diff / 3600000) + "h ago";
+  if (diff < 604800000) return Math.floor(diff / 86400000) + "d ago";
+  return dt.toLocaleDateString("en-US", { month:"short", day:"numeric" });
+}
+
+// ── Tab switching ─────────────────────────────────
+function showPanel(name) {
+  vaultPanel.classList.remove("active");
+  writePanel.classList.remove("active");
+  readPanel.classList.remove("active");
+
+  tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === name || (name === "read" && t.dataset.tab === "vault")));
+
+  if (name === "vault")  vaultPanel.classList.add("active");
+  if (name === "write")  writePanel.classList.add("active");
+  if (name === "read")   readPanel.classList.add("active");
+}
+
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    prevTab = tab.dataset.tab;
+    showPanel(tab.dataset.tab);
+  });
+});
+
+// ── File list rendering ──────────────────────────
+function renderList(files) {
+  const q = searchInput.value.trim().toLowerCase();
+  const filtered = q ? files.filter(f => f.name.toLowerCase().includes(q)) : files;
+
+  listLabel.textContent = q
+    ? `${filtered.length} result${filtered.length !== 1 ? "s" : ""} for "${q}"`
+    : `${files.length} note${files.length !== 1 ? "s" : ""}`;
+
+  if (filtered.length === 0) {
+    fileList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${q ? "🔍" : "🗄"}</div>
+        <div class="empty-title">${q ? "Nothing found" : "Your vault is empty"}</div>
+        <div class="empty-sub">${q ? `No notes match "${q}"` : "Tap Write to create your first note"}</div>
+      </div>`;
+    return;
+  }
+
+  fileList.innerHTML = "";
+  filtered.forEach((f, i) => {
+    const item = document.createElement("div");
+    item.className = "file-item";
+    item.style.animationDelay = (i * 0.04) + "s";
+    item.innerHTML = `
+      <div class="file-icon">${fileEmoji(f.name)}</div>
+      <div class="file-info">
+        <div class="file-name">${f.name}</div>
+        <div class="file-meta">${fmtSize(f.size)}${f.last_modified ? " · " + fmtDate(f.last_modified) : ""}</div>
+      </div>
+      <div class="file-actions">
+        <button class="file-act-btn" data-action="dl" title="Download">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+        <button class="file-act-btn del" data-action="del" title="Delete">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/>
+          </svg>
+        </button>
+      </div>`;
+
+    // open on tap (not on action btn tap)
+    item.addEventListener("click", e => {
+      if (e.target.closest(".file-act-btn")) return;
+      openFile(f);
+    });
+
+    item.querySelector("[data-action='dl']").addEventListener("click", async e => {
+      e.stopPropagation();
+      try { await sg.download(f.name); toast("Downloaded " + f.name, "success"); }
+      catch (err) { toast(err.message, "error"); }
+    });
+
+    item.querySelector("[data-action='del']").addEventListener("click", e => {
+      e.stopPropagation();
+      confirm("Delete note?", f.name, async () => {
+        try {
+          await sg.delete(f.name);
+          toast("Deleted " + f.name, "success");
+          await loadFiles();
+        } catch (err) { toast(err.message, "error"); }
+      });
+    });
+
+    fileList.appendChild(item);
+  });
+}
+
+// ── Load files ───────────────────────────────────
+async function loadFiles() {
+  try {
+    allFiles = await sg.list();
+    allFiles.sort((a, b) => {
+      if (a.last_modified && b.last_modified) return new Date(b.last_modified) - new Date(a.last_modified);
+      return a.name.localeCompare(b.name);
+    });
+    renderList(allFiles);
+    const total = allFiles.reduce((s, f) => s + (f.size || 0), 0);
+    storageBadge.textContent = fmtTotalSize(total);
+  } catch (err) {
+    toast("Load failed: " + err.message, "error");
+  }
+}
+
+searchInput.addEventListener("input", () => renderList(allFiles));
+
+refreshBtn.addEventListener("click", async () => {
+  refreshBtn.style.opacity = ".4";
+  await loadFiles();
+  refreshBtn.style.opacity = "";
+  toast("Refreshed", "success");
+});
+
+// ── Open / read file ─────────────────────────────
+async function openFile(f) {
+  currentFile = f;
+  readTitle.textContent = f.name;
+  readContent.textContent = "Loading…";
+  showPanel("read");
+  try {
+    const text = await sg.readText(f.name);
+    readContent.textContent = text;
+  } catch (err) {
+    readContent.textContent = "Could not load: " + err.message;
+  }
+}
+
+readBack.addEventListener("click", () => {
+  showPanel("vault");
+  currentFile = null;
+});
+
+readDl.addEventListener("click", async () => {
+  if (!currentFile) return;
+  try {
+    await sg.download(currentFile.name);
+    toast("Downloaded", "success");
+  } catch (err) { toast(err.message, "error"); }
+});
+
+readCopy.addEventListener("click", async () => {
+  const text = readContent.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("Copied to clipboard", "success");
+  } catch {
+    toast("Copy not supported", "error");
+  }
+});
+
+readDel.addEventListener("click", () => {
+  if (!currentFile) return;
+  confirm("Delete note?", currentFile.name, async () => {
+    try {
+      await sg.delete(currentFile.name);
+      toast("Deleted", "success");
+      showPanel("vault");
+      currentFile = null;
+      await loadFiles();
+    } catch (err) { toast(err.message, "error"); }
+  });
+});
+
+// ── Write panel ──────────────────────────────────
+document.querySelectorAll(".ext-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll(".ext-chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    activeExt = chip.dataset.ext;
+  });
+});
+
+editor.addEventListener("input", () => {
+  const chars = editor.value.length;
+  const lines = editor.value.split("\n").length;
+  editorInfo.textContent = `${chars} char${chars !== 1 ? "s" : ""} · ${lines} line${lines !== 1 ? "s" : ""}`;
+  saveBtn.disabled = !editor.value.trim();
+});
+
+noteTitle.addEventListener("input", () => {
+  saveBtn.disabled = !editor.value.trim();
+});
+
+clearBtn.addEventListener("click", () => {
+  if (!editor.value.trim()) return;
+  confirm("Clear editor?", "This will erase your current draft.", () => {
+    editor.value = "";
+    noteTitle.value = "";
+    editorInfo.textContent = "0 chars · 1 line";
+    saveBtn.disabled = true;
+  });
+});
+
+saveBtn.addEventListener("click", async () => {
+  const content = editor.value.trim();
+  if (!content) return;
+
+  const raw  = noteTitle.value.trim();
+  const name = raw
+    ? (raw.includes(".") ? raw : raw + activeExt)
+    : `note-${Date.now()}${activeExt}`;
+
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = `<div class="loader-ring" style="width:16px;height:16px;border-width:2px;border-top-color:#fff"></div> Saving…`;
+
+  try {
+    await sg.saveText(name, content);
+    toast(`Saved as ${name}`, "success");
+    editor.value    = "";
+    noteTitle.value = "";
+    editorInfo.textContent = "0 chars · 1 line";
+    await loadFiles();
+    showPanel("vault");
+    tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === "vault"));
+  } catch (err) {
+    toast("Save failed: " + err.message, "error");
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Save to Vault`;
+  }
+});
+
+// ── Boot ─────────────────────────────────────────
+(async () => {
+  await loadFiles();
+  setTimeout(() => loading.classList.add("hide"), 400);
+  setTimeout(() => loading.style.display = "none", 700);
+})();
 </script>
 </body>
 </html>
