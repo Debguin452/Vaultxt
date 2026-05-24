@@ -54,7 +54,7 @@ Upload the single `index.html` file. No backend, no build configuration needed.
 
 ## How the API calls work
 
-`storegit.js` has been removed. All network calls are plain `fetch` inside a small `api` object at the top of the script. Here is what each method does:
+All network calls are plain `fetch` inside a small `api` object at the top of the script. Here is what each method does:
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -79,7 +79,6 @@ Vaultxt/
 └── index.html   ← everything; no dependencies, no build step
 ```
 
-`storegit.js` was removed. It used `Authorization: Bearer` (wrong header) and a non-existent `/api/read` endpoint — both of which caused silent failures. The inline `api` object uses the correct `X-API-Key` header and `/api/download` endpoint.
 
 ---
 
